@@ -101,7 +101,6 @@ class IdReplacer:
                 self.foreign_keys = self._get_foreign_keys(conn)
                 kwargs['rows'] = self.primary_keys
                 kwargs['ignored_tables'] = params['ignored_tables']
-                kwargs['serial_name'] = params['serial_name']
                 self.set_up(conn, *args, **kwargs)
                 try:
                     Utils.print_message("Creating temporary pk column")
@@ -365,10 +364,6 @@ class IdReplacer:
                 except Exception as e:
                     print(sql)
 
-            # sql = self._build_sql_to_alter_column_to_uuid(table_name,serial_name, column_name)
-            # if sql is not None:
-            #     utils.execute(connection, sql)
-
     def _build_sql_to_drop_constraint(self, table_name, constraint_name):
         sql = "alter table {table_name} drop constraint if exists {constraint_name};".format(
             table_name=table_name,
@@ -440,24 +435,6 @@ class IdReplacer:
             value=value,
         )
         return sql
-
-    def _copy_pk_column_to_serial_column(self, connection, *args, **kwargs):
-        serial_name = kwargs['params']['serial_name']
-        rows = kwargs['rows']
-        utils = kwargs['utils']
-
-        for row in rows:
-            table_schema = row['table_schema']
-            table_name = self._build_table_name(table_schema, row['table_name'])
-            column_name = row['column_name']
-            if table_name in kwargs['ignored_tables']:
-                continue
-
-            Utils.print_message("...copying pk to serial column " + table_name)
-
-            sql = self._build_sql_to_update_column(table_name, serial_name, column_name)
-            if sql is not None:
-                utils.execute(connection, sql)
 
     def _build_primary_key_update_command(self, *args, **kwargs):
         return kwargs['update_command'].format(value='gen_random_uuid()')
@@ -564,25 +541,6 @@ class IdReplacer:
         )
         return sql
 
-    def _create_serial_column(self, connection, *args, **kwargs):
-        column_name = kwargs['params']['serial_name']
-        rows = kwargs['rows']
-        utils = kwargs['utils']
-
-        for row in rows:
-            schema_name = row['table_schema']
-            table_name = row['table_name']
-            data_type = row['data_type']
-            table_name = self._build_table_name(schema_name, table_name)
-            if table_name in kwargs['ignored_tables']:
-                continue
-
-            Utils.print_message("...adding serial column " + table_name)
-
-            sql = self._build_sql_to_create_column(table_name, column_name, data_type)
-            if sql is not None:
-                utils.execute(connection, sql)
-
     def _create_temporary_column(self, connection, *args, **kwargs):
         rows = kwargs['rows']
         utils = kwargs['utils']
@@ -616,23 +574,5 @@ class IdReplacer:
             Utils.print_message("...dropping temporary column " + table_name + "." + column_name)
 
             sql = self._build_sql_to_drop_column(table_name, column_name)
-            if sql is not None:
-                utils.execute(connection, sql)
-
-    def _drop_serial_column(self, connection, *args, **kwargs):
-        rows = kwargs['rows']
-        utils = kwargs['utils']
-        for row in rows:
-            schema_name = row['table_schema']
-            table_name = row['table_name']
-            serial_column = kwargs['serial_name']
-
-            table_name = self._build_table_name(schema_name, table_name)
-            if table_name in kwargs['ignored_tables']:
-                continue
-
-            Utils.print_message("...dropping serial column " + table_name + "." + serial_column)
-
-            sql = self._build_sql_to_drop_column(table_name, serial_column)
             if sql is not None:
                 utils.execute(connection, sql)

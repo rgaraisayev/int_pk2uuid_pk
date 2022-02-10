@@ -1,9 +1,19 @@
+# Changes applied for own needs and fixed bugs
+
+#### * removed "serial column"
+#### * added "ignored_tables"
+#### * added "smallint" pk/fk support
+
+#### * added drop/re-create primary key(because can't cast id to uuid)
+
+
+
 # int_pk2uuid_pk
 Convert primary keys integer or bigint to UUID
 
 ###### By Clayton Boneli
 
-# ATENCION: backup your data before use this software
+# ATTENTION: backup your data before use this software
 
 Some database the primary keys and related foreign keys are defined as numeric sequentials (integers), however in the world of cloud applications, the use of integers is not the default. The work of changing primary / foreign keys from whole numeric column to UUID column is made easier by using a tool that does these transformations. The goal of this project is to create a tool that transforms primary / foreign keys to UUID columns.
 
